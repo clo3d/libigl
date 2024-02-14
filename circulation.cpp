@@ -9,6 +9,10 @@
 #include "list_to_matrix.h"
 #include <cassert>
 
+#pragma warning(push)
+#pragma warning(disable: 4244)          // ptrdiff_t to int warning
+#pragma warning(disable: 4101)          // unreferenced local variables
+
 IGL_INLINE std::vector<int> igl::circulation(
   const int e,
   const bool ccw,
@@ -127,7 +131,7 @@ IGL_INLINE void igl::circulation(
   int ei = e;
   while(true)
   {
-    int re,rv;
+    int rv;
     step(ei,fi,ei/*,re*/,rv,fi);
     Nf.push_back(fi);
     //Ne.push_back(re);
@@ -141,3 +145,5 @@ IGL_INLINE void igl::circulation(
     }
   }
 }
+
+#pragma warning(pop)

@@ -14,6 +14,8 @@
 #include <cstdio>
 #include <cassert>
 
+#pragma warning(push)
+#pragma warning(disable: 4267)
 template <
   typename DerivedV, 
   typename DerivedF,
@@ -144,7 +146,7 @@ IGL_INLINE bool igl::writeOBJ(
 
     for(const auto& vi : face)
     {
-      s<<" "<<vi; 
+      s<<" "<<(vi+1); 
     }
     s<<"\n";
   }
@@ -167,3 +169,4 @@ template bool igl::writeOBJ<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Mat
 template bool igl::writeOBJ<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&);
 template bool igl::writeOBJ<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&);
 #endif
+#pragma warning(pop)

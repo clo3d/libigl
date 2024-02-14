@@ -12,9 +12,9 @@
 //Code from https://code.google.com/archive/p/geodesic/
 // Compiled into a single file by Zhongshi Jiang
 
-#include <igl/PI.h>
+#include "PI.h"
 #include <algorithm>
-#include <cassert>
+#include "IGL_ASSERT.h"
 #include <cmath>
 #include <cstddef>
 #include <ctime>
@@ -23,6 +23,7 @@
 #include <set>
 #include <vector>
 #include <memory>
+#include <cmath>
 namespace igl{
 namespace geodesic{
 
@@ -242,7 +243,7 @@ public:
 		double wanted = n*sizeof(T);
 		if(wanted > m_num_bytes)
 		{
-			unsigned new_size = (unsigned) ceil(wanted / (double)sizeof(double));
+			unsigned new_size = (unsigned) std::ceil(wanted / (double)sizeof(double));
 			m_buffer = std::shared_ptr<double>(new double[new_size]);
 			m_num_bytes = new_size*sizeof(double);
 		}
@@ -259,7 +260,7 @@ public:
 	template<class T>
 	unsigned capacity()
 	{
-		return (unsigned)floor((double)m_num_bytes/(double)sizeof(T));
+		return (unsigned)std::floor((double)m_num_bytes/(double)sizeof(T));
 	};
 
 private:
@@ -586,7 +587,7 @@ public:
 				 double x,
 				 double y,
 				 double z,
-				 PointType t = UNDEFINED_POINT):
+				 PointType /*t = UNDEFINED_POINT*/):
 		m_p(g)
 	{
 		set(x,y,z);
@@ -991,7 +992,7 @@ inline void Mesh::build_adjacencies()
 			f.corner_angles()[j] = angle;
 			sum += angle;
 		}
-		assert(std::abs(sum - igl::PI) < 1e-5);		//algorithm works well with non-degenerate meshes only
+		IGL_ASSERT(std::abs(sum - igl::PI) < 1e-5);		//algorithm works well with non-degenerate meshes only
 	}
 
 		//define m_turn_around_flag for vertices
@@ -1071,13 +1072,13 @@ inline bool Mesh::verify()		//verifies connectivity of the mesh and prints some 
 	// 		  << " faces, "		<< m_edges.size()
 	// 		  << " edges\n";
 
-	unsigned total_boundary_edges = 0;
+	//unsigned total_boundary_edges = 0;
 	double longest_edge = 0;
 	double shortest_edge = 1e100;
 	for(unsigned i=0; i<m_edges.size(); ++i)
 	{
 		Edge& e = m_edges[i];
-		total_boundary_edges += e.is_boundary() ? 1 : 0;
+		//total_boundary_edges += e.is_boundary() ? 1 : 0;
 		longest_edge = std::max(longest_edge, e.length());
 		shortest_edge = std::min(shortest_edge, e.length());
 	}
@@ -1110,9 +1111,9 @@ inline bool Mesh::verify()		//verifies connectivity of the mesh and prints some 
 	// 		  <<" Z[" << minz << "," << maxz << "]"
 	// 		  << std::endl;
 
-	double dx = maxx - minx;
-	double dy = maxy - miny;
-	double dz = maxz - minz;
+	//double dx = maxx - minx;
+	//double dy = maxy - miny;
+	//double dz = maxz - minz;
 	// std::cout << "approximate diameter of the mesh is "
 	// 		  << sqrt(dx*dx + dy*dy + dz*dz)
 	// 		  << std::endl;
@@ -1163,7 +1164,7 @@ inline void fill_surface_point_structure(geodesic::SurfacePoint* point,
 
 inline void fill_surface_point_double(geodesic::SurfacePoint* point,
 									  double* data,
-									  long mesh_id)
+									  long /*mesh_id*/)
 {
 	data[0] = point->x();
 	data[1] = point->y();
@@ -2217,9 +2218,9 @@ inline unsigned GeodesicAlgorithmExact::intersect_intervals(interval_pointer zer
 
 	double good_start[4];										//points of intersection within the (left, right) limits +"left" + "right"
 	good_start[0] = left;
-	char Ngood_start=1;										//number of the points of the intersection
+	unsigned char Ngood_start=1;										//number of the points of the intersection
 
-	for(char i=0; i<Ninter; ++i)							//for all points of intersection
+	for(unsigned char i=0; i<Ninter; ++i)							//for all points of intersection
 	{
 		double x = inter[i];
 		if(x > left + local_epsilon && x < right - local_epsilon)
@@ -2230,7 +2231,7 @@ inline unsigned GeodesicAlgorithmExact::intersect_intervals(interval_pointer zer
 	good_start[Ngood_start++] = right;
 
 	MapType mid_map[3];
-	for(char i=0; i<Ngood_start-1; ++i)
+	for(unsigned char i=0; i<Ngood_start-1; ++i)
 	{
 		double mid = (good_start[i] + good_start[i+1])*0.5;
 		mid_map[i] = zero->signal(mid) <= one->signal(mid) ? OLD : NEW;
@@ -2336,7 +2337,7 @@ inline void GeodesicAlgorithmExact::propagate(std::vector<SurfacePoint>& sources
 		interval_pointer min_interval = *m_queue.begin();
 		m_queue.erase(m_queue.begin());
 		edge_pointer edge = min_interval->edge();
-		list_pointer list = interval_list(edge);
+		//list_pointer list = interval_list(edge);
 
 		assert(min_interval->d() < GEODESIC_INF);
 
@@ -3171,13 +3172,13 @@ IGL_INLINE void igl::exact_geodesic(
   const Eigen::MatrixBase<DerivedFT> &FT,
   Eigen::PlainObjectBase<DerivedD> &D)
 {
-  assert(V.cols() == 3 && F.cols() == 3 && "Only support 3D triangle mesh");
-  assert(VS.cols() <=1 && FS.cols() <= 1 && VT.cols() <= 1 && FT.cols() <=1 && "Only support one dimensional inputs");
-  std::vector<typename DerivedV::Scalar> points(V.rows() * V.cols());
+  assert((V.cols() == 3 || V.cols() == 2) && F.cols() == 3 && "Only support 2D/3D triangle mesh");
+  std::vector<typename DerivedV::Scalar> points(V.rows() * 3);
   std::vector<typename DerivedF::Scalar> faces(F.rows() * F.cols());
   for (int i = 0; i < points.size(); i++)
   {
-    points[i] = V(i / 3, i % 3);
+    // Append 0s for 2D input
+    points[i] = ((i%3)<2 || V.cols()==3) ? V(i / 3, i % 3) : 0.0;
   }
   for (int i = 0; i < faces.size(); i++)
   {
@@ -3188,29 +3189,47 @@ IGL_INLINE void igl::exact_geodesic(
   mesh.initialize_mesh_data(points, faces);
   igl::geodesic::GeodesicAlgorithmExact exact_algorithm(&mesh);
 
-  std::vector<igl::geodesic::SurfacePoint> source(VS.rows() + FS.rows());
-  std::vector<igl::geodesic::SurfacePoint> target(VT.rows() + FT.rows());
-  for (int i = 0; i < VS.rows(); i++)
-  {
-    source[i] = (igl::geodesic::SurfacePoint(&mesh.vertices()[VS(i, 0)]));
-  }
-  for (int i = 0; i < FS.rows(); i++)
-  {
-    source[i] = (igl::geodesic::SurfacePoint(&mesh.faces()[FS(i, 0)]));
-  }
+  std::vector<igl::geodesic::SurfacePoint> source;
+  source.reserve(VS.rows() + FS.rows());
 
-  for (int i = 0; i < VT.rows(); i++)
+  // Vertex sources
+  for(int i = 0;i < VS.rows(); i++)
   {
-    target[i] = (igl::geodesic::SurfacePoint(&mesh.vertices()[VT(i, 0)]));
+    for(int j = 0;j < VS.cols(); j++)
+    {
+      source.emplace_back(&mesh.vertices()[VS(i, j)]);
+    }
   }
-  for (int i = 0; i < FT.rows(); i++)
+  // Face Sources
+  for(int i = 0;i < FS.rows(); i++)
   {
-    target[i] = (igl::geodesic::SurfacePoint(&mesh.faces()[FT(i, 0)]));
+    for(int j = 0;j < FS.cols(); j++)
+    {
+      source.emplace_back(&mesh.faces()[FS(i, j)]);
+    }
+  }
+  std::vector<igl::geodesic::SurfacePoint> target;
+  target.reserve(VT.rows() + FT.rows());
+  //Vertex targets
+  for(int i = 0;i < VT.rows(); i++)
+  {
+    for(int j = 0;j < VT.cols(); j++)
+    {
+      target.emplace_back(&mesh.vertices()[VT(i, j)]);
+    }
+  }
+  // Face targets
+  for(int i = 0;i < FT.rows(); i++)
+  {
+    for(int j = 0;j < FT.cols(); j++)
+    {
+      target.emplace_back(&mesh.faces()[FT(i, j)]);
+    }
   }
 
   exact_algorithm.propagate(source);
   std::vector<igl::geodesic::SurfacePoint> path;
-  D.resize(target.size(), 1);
+  D.resize(target.size());
   for (int i = 0; i < target.size(); i++)
   {
     exact_algorithm.trace_back(target[i], path);
@@ -3220,5 +3239,4 @@ IGL_INLINE void igl::exact_geodesic(
 
 #ifdef IGL_STATIC_LIBRARY
 template void igl::exact_geodesic<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1>, Eigen::Matrix<double, -1, 1, 0, -1, 1>>(Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1>> const &, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1>> const &, Eigen::MatrixBase<Eigen::Matrix<int, -1, 1, 0, -1, 1>> const &, Eigen::MatrixBase<Eigen::Matrix<int, -1, 1, 0, -1, 1>> const &, Eigen::MatrixBase<Eigen::Matrix<int, -1, 1, 0, -1, 1>> const &, Eigen::MatrixBase<Eigen::Matrix<int, -1, 1, 0, -1, 1>> const &, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 1, 0, -1, 1>> &);
-template void igl::exact_geodesic<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<int, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::MatrixBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&);
 #endif

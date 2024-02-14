@@ -18,11 +18,11 @@
 #include <Eigen/SparseCholesky>
 
 // Lib IGL includes
-#include <igl/adjacency_list.h>
-#include <igl/per_face_normals.h>
-#include <igl/per_vertex_normals.h>
-#include <igl/avg_edge_length.h>
-#include <igl/vertex_triangle_adjacency.h>
+#include "adjacency_list.h"
+#include "per_face_normals.h"
+#include "per_vertex_normals.h"
+#include "avg_edge_length.h"
+#include "vertex_triangle_adjacency.h"
 
 typedef enum
 {
@@ -89,17 +89,18 @@ public:
       return 2.0*c()*v + b()*u + e();
     }
 
-    IGL_INLINE double duv(double u, double v)
+    // Why do these take u,v arguments if they're not used?
+    IGL_INLINE double duv(double , double )
     {
       return b();
     }
 
-    IGL_INLINE double duu(double u, double v)
+    IGL_INLINE double duu(double , double )
     {
       return 2.0*a();
     }
 
-    IGL_INLINE double dvv(double u, double v)
+    IGL_INLINE double dvv(double , double )
     {
       return 2.0*c();
     }
@@ -108,11 +109,6 @@ public:
     IGL_INLINE static Quadric fit(const std::vector<Eigen::Vector3d> &VV)
     {
       assert(VV.size() >= 5);
-      if (VV.size() < 5)
-      {
-        std::cerr << "ASSERT FAILED! fit function requires at least 5 points: Only " << VV.size() << " were given." << std::endl;
-        exit(0);
-      }
 
       Eigen::MatrixXd A(VV.size(),5);
       Eigen::MatrixXd b(VV.size(),1);
@@ -350,7 +346,7 @@ IGL_INLINE void CurvatureCalculator::fitQuadric(const Eigen::Vector3d& v, const 
   }
   if (points.size() < 5)
   {
-    std::cerr << "ASSERT FAILED! fit function requires at least 5 points: Only " << points.size() << " were given." << std::endl;
+    assert(false && "fit function requires at least 5 points");
     *q = Quadric(0,0,0,0,0);
   }
   else
@@ -457,15 +453,18 @@ IGL_INLINE void CurvatureCalculator::getKRing(const int start, const double r, s
     int distance=queue.front().second;
     queue.pop_front();
     vv.push_back(toVisit);
-    if (distance<(int)r)
+    if(toVisit<vertex_to_vertices.size())
     {
-      for (unsigned int i=0; i<vertex_to_vertices[toVisit].size(); ++i)
+      if (distance<(int)r)
       {
-        int neighbor=vertex_to_vertices[toVisit][i];
-        if (!visited[neighbor])
+        for (unsigned int i=0; i<vertex_to_vertices[toVisit].size(); ++i)
         {
-          queue.push_back(std::pair<int,int> (neighbor,distance+1));
-          visited[neighbor]=true;
+          int neighbor=vertex_to_vertices[toVisit][i];
+          if (!visited[neighbor])
+          {
+            queue.push_back(std::pair<int,int> (neighbor,distance+1));
+            visited[neighbor]=true;
+          }
         }
       }
     }
@@ -918,7 +917,7 @@ IGL_INLINE void igl::principal_curvature(
 
     if (PD1.row(i) * PD2.row(i).transpose() > 10e-6)
     {
-      std::cerr << "PRINCIPAL_CURVATURE: Something is wrong with vertex: " << i << std::endl;
+      assert(false && "PRINCIPAL_CURVATURE: Something is wrong with vertex");
       PD1.row(i) *= 0;
       PD2.row(i) *= 0;
     }
