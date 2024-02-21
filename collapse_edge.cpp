@@ -11,6 +11,9 @@
 #include "decimate_trivial_callbacks.h"
 #include <vector>
 
+#pragma warning(push)
+#pragma warning(disable: 4244)              // ptrdiff_t to int warning
+
 IGL_INLINE bool igl::collapse_edge(
   const int e,
   const Eigen::RowVectorXd & p,
@@ -311,6 +314,8 @@ IGL_INLINE bool igl::collapse_edge(
   post_collapse(V,F,E,EMAP,EF,EI,Q,EQ,C,e,e1,e2,f1,f2,collapsed);
   if(collapsed)
   {
+    // Erase the center edge, marking its timestamp as -1
+    EQ(e) = -1;
     // Erase the two, other collapsed edges by marking their timestamps as -1
     EQ(e1) = -1;
     EQ(e2) = -1;
@@ -371,3 +376,5 @@ IGL_INLINE bool igl::collapse_edge(
   }
   return collapsed;
 }
+
+#pragma warning(pop)

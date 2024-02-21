@@ -133,6 +133,16 @@ IGL_INLINE bool igl::readTGF(
       P.push_back(i);
     }
   }
+
+  //P for Point handle (ellie 2023.02.23)
+  for (int i = 0; i < (int)BE.size(); i++)
+  {
+      if (BE[i][0] == BE[i][1])
+      {
+          P.push_back(BE[i][0]);
+      }
+  }
+
   return true;
 }
 

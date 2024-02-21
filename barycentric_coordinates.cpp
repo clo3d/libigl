@@ -8,6 +8,9 @@
 #include "barycentric_coordinates.h"
 #include "volume.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4244)
+
 template <
   typename DerivedP,
   typename DerivedA,
@@ -99,6 +102,8 @@ IGL_INLINE void igl::barycentric_coordinates(
   L.col(2) = (d00 * d21 - d01 * d20) / denom;
   L.col(0) = 1.0f -(L.col(1) + L.col(2)).array();
 }
+
+#pragma warning(pop)
 
 #ifdef IGL_STATIC_LIBRARY
 // Explicit template instantiation

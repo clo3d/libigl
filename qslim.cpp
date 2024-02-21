@@ -11,25 +11,33 @@
 #include "connect_boundary_to_infinity.h"
 #include "decimate.h"
 #include "edge_flaps.h"
+#include "find.h"
 #include "is_edge_manifold.h"
 #include "max_faces_stopping_condition.h"
 #include "per_vertex_point_to_plane_quadrics.h"
 #include "qslim_optimal_collapse_edge_callbacks.h"
 #include "quadric_binary_plus_operator.h"
 #include "remove_unreferenced.h"
-#include "slice.h"
-#include "slice_mask.h"
+#include "intersection_blocking_collapse_edge_callbacks.h"
+#include "AABB.h"
 
 IGL_INLINE bool igl::qslim(
   const Eigen::MatrixXd & V,
   const Eigen::MatrixXi & F,
-  const size_t max_m,
+  const int max_m,
+  const bool block_intersections,
   Eigen::MatrixXd & U,
   Eigen::MatrixXi & G,
   Eigen::VectorXi & J,
   Eigen::VectorXi & I)
 {
   using namespace igl;
+  igl::AABB<Eigen::MatrixXd, 3> * tree = nullptr;
+  if(block_intersections)
+  {
+    tree = new igl::AABB<Eigen::MatrixXd, 3>();
+    tree->init(V,F);
+  }
 
   // Original number of faces
   const int orig_m = F.rows();
@@ -63,6 +71,13 @@ IGL_INLINE bool igl::qslim(
   decimate_post_collapse_callback      post_collapse;
   qslim_optimal_collapse_edge_callbacks(
     E,quadrics,v1,v2, cost_and_placement, pre_collapse,post_collapse);
+  if(block_intersections)
+  {
+    igl::intersection_blocking_collapse_edge_callbacks(
+      pre_collapse, post_collapse, // These will get copied as needed
+      tree,
+      pre_collapse, post_collapse);
+  }
   // Call to greedy decimator
   bool ret = decimate(
     VO, FO,
@@ -74,11 +89,14 @@ IGL_INLINE bool igl::qslim(
     U, G, J, I);
   // Remove phony boundary faces and clean up
   const Eigen::Array<bool,Eigen::Dynamic,1> keep = (J.array()<orig_m);
-  igl::slice_mask(Eigen::MatrixXi(G),keep,1,G);
-  igl::slice_mask(Eigen::VectorXi(J),keep,1,J);
+  const auto keep_i = igl::find(keep);
+  G = G(keep_i,Eigen::all).eval();
+  J = J(keep_i).eval();
   Eigen::VectorXi _1,I2;
   igl::remove_unreferenced(Eigen::MatrixXd(U),Eigen::MatrixXi(G),U,G,_1,I2);
-  igl::slice(Eigen::VectorXi(I),I2,1,I);
+  I = I(I2).eval();
 
+  assert(tree == nullptr || tree == tree->root());
+  delete tree;
   return ret;
 }
