@@ -1,8 +1,8 @@
-## Specs (2022.03.10)
-- version 2.4.0
+## Specs (2024.02.14)
+- version 2.5.0
 - header-only library
 
-https://github.com/libigl/libigl/tree/v2.4.0
+https://github.com/libigl/libigl/tree/v2.5.0
 
 All files here are licensed under MPL2. The non-MPL2 files were removed. Those were in the subdirectories in libigl/igl in the main repository.
 

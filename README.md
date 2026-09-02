@@ -1,9 +1,9 @@
 # libigl
 
 ## Specs 
-- Original Link : https://github.com/libigl/libigl/tree/v2.4.0
+- Original Link : https://github.com/libigl/libigl/tree/v2.5.0
 - header-only library
-- version 2.4.0
+- version 2.5.0
 
 All files here are licensed under MPL2. The non-MPL2 files were removed. Those were in the subdirectories in libigl/igl in the main repository.
 
